@@ -33,6 +33,12 @@ validation catches that. If this crate mishandles your equipment, a captured
 response is the most useful thing you can send: it becomes a fixture under
 `schemas/examples/`, and from then on the behaviour cannot regress.
 
+## What the published crate contains
+
+The library, and nothing else. The vendored AMWA schemas are 444K of test
+fixtures that no consumer exercises at runtime, and the test suite cannot run
+without them, so both stay in the repository. To run the suite, clone it.
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE). The vendored AMWA schemas under `schemas/`
