@@ -1,0 +1,54 @@
+[package]
+name = "nmos"
+version = "0.1.0"
+edition = "2024"
+# The floor of edition 2024, not the toolchain this is developed on. A library
+# that demands a toolchain from this month excludes most of the people who would
+# otherwise use it. CI must hold this: see AGENTS.md, "MSRV".
+rust-version = "1.85"
+license = "Apache-2.0"
+description = "AMWA NMOS for SMPTE ST 2110 networks: the IS-04 resource model, IS-05 connection management, and clients for both."
+repository = "https://github.com/flussonic/nmos"
+readme = "README.md"
+keywords = ["nmos", "st2110", "amwa", "broadcast", "smpte"]
+categories = ["network-programming", "multimedia"]
+
+[features]
+default = ["client"]
+# The HTTP clients: IS-04 Node API and IS-05 Connection API.
+client = ["dep:reqwest", "dep:tokio"]
+# Finding Nodes on the network over mDNS.
+discovery = ["dep:mdns-sd"]
+# Resource identifiers as UUIDs, for the side that generates them rather than
+# reads them. See DESIGN.md, "Identifiers".
+uuid = ["dep:uuid"]
+
+[dependencies]
+# Not optional: this crate exists to turn NMOS documents into types and back.
+# A model that cannot be serialised is not a model of a JSON protocol.
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+thiserror = "2.0.20"
+
+reqwest = { version = "0.13.4", default-features = false, features = ["rustls", "json", "http2", "charset"], optional = true }
+tokio = { version = "1.53.1", features = ["rt", "time", "macros"], optional = true }
+mdns-sd = { version = "0.21.1", optional = true }
+uuid = { version = "1.19.1", features = ["serde"], optional = true }
+
+[dev-dependencies]
+# The vendored AMWA schemas are applied as validators, not as code generators.
+jsonschema = { version = "0.53.0", default-features = false }
+proptest = "1.11.0"
+tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "time", "macros"] }
+wiremock = "0.6.5"
+
+# This crate is used to drive equipment that is on air. It returns errors; it
+# does not abort. Relaxed under cfg(test) only.
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+todo = "deny"
+unimplemented = "deny"
+correctness = "deny"
