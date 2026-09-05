@@ -38,6 +38,7 @@ exclude = [
     "/.claude",
     "/rust-toolchain.toml",
     "/.gitignore",
+    "/.github/",
 ]
 
 # docs.rs must show the clients, which are behind a feature.

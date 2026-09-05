@@ -101,3 +101,5 @@ it**, and until CI exists, check it before every release.
 - Keep the body short: at most 3 lines. Say what changed and why.
 - If the work belongs to a ticket, put a trailing `Refs #<id>` line.
 - English only, like everything else here.
+- No agent-attribution trailers. The repository says plainly in this file that
+  agents work here; repeating it on every commit adds noise, not information.
