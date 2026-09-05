@@ -20,6 +20,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 use thiserror::Error;
 
+use crate::is05::Param;
 use crate::resource::ResourceId;
 use crate::version::ApiVersion;
 
@@ -350,30 +351,14 @@ fn classify(error: reqwest::Error, resource: &str) -> ConnectionApiError {
 
 // --- the wire ---------------------------------------------------------------
 
-/// A field IS-05 writes either as a value or as the string `auto`.
+/// A field that arrived as a value, as the string `auto`, or not at all.
 ///
-/// `auto` says the device decides, which from here is indistinguishable from
-/// not knowing — so both collapse to `None` rather than to a plausible number.
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum AutoOr<T> {
-    Value(T),
-    /// The literal string `auto`. Its content is never read; what matters is
-    /// that it parsed here rather than failing the whole document.
-    Auto(#[expect(dead_code, reason = "matched for its shape, not its value")] String),
-}
-
-impl<T> AutoOr<T> {
-    fn known(self) -> Option<T> {
-        match self {
-            AutoOr::Value(value) => Some(value),
-            AutoOr::Auto(_) => None,
-        }
-    }
-}
-
-fn known<T>(field: Option<AutoOr<T>>) -> Option<T> {
-    field.and_then(AutoOr::known)
+/// [`Param`] is the same four-state field a patch is built from, read from the
+/// other direction. A reader cares about only one distinction — is there a value
+/// — so `auto`, `null` and absent all collapse to `None` rather than to a
+/// plausible number.
+fn known<T>(field: Param<T>) -> Option<T> {
+    field.set()
 }
 
 /// `master_enable` is deliberately absent from these: connection state comes
@@ -389,11 +374,11 @@ struct WireSender {
 #[derive(Debug, Deserialize)]
 struct WireSenderLeg {
     #[serde(default)]
-    destination_ip: Option<AutoOr<String>>,
+    destination_ip: Param<String>,
     #[serde(default)]
-    destination_port: Option<AutoOr<u16>>,
+    destination_port: Param<u16>,
     #[serde(default)]
-    source_ip: Option<AutoOr<String>>,
+    source_ip: Param<String>,
     #[serde(default)]
     rtp_enabled: bool,
 }
@@ -428,11 +413,11 @@ struct WireTransportFile {
 #[derive(Debug, Deserialize)]
 struct WireReceiverLeg {
     #[serde(default)]
-    multicast_ip: Option<AutoOr<String>>,
+    multicast_ip: Param<String>,
     #[serde(default)]
-    source_ip: Option<AutoOr<String>>,
+    source_ip: Param<String>,
     #[serde(default)]
-    destination_port: Option<AutoOr<u16>>,
+    destination_port: Param<u16>,
     #[serde(default)]
     rtp_enabled: bool,
 }

@@ -114,9 +114,15 @@ products, the answer is no.
 
 ## What is missing, in the order it matters
 
-1. **IS-05 writing** — staging, activation immediate and scheduled, bulk. Behind
-   the non-default `write` feature, so that a consumer which must not write can
-   prove it at compile time rather than promise it in a review.
+1. **Sending** a write. The documents are here — `staged`, activation, the
+   patches — because both ends read them: a controller composes a patch and a
+   Node parses it. What is missing is the client method that puts one on the
+   wire, and the bulk endpoint. Those will sit behind a non-default `write`
+   feature, so that a consumer which must not write can prove it at compile time
+   rather than promise it in a review.
+
+   Describing a write and performing one are different things, and the read-only
+   contract is checked against the second: see `tests/read_only.rs`.
 2. **Registered mode** — the Registration and Query APIs. In a plant with a
    registry, Nodes register with it and the peer-to-peer mDNS advertisement is
    the fallback for when no registry is found. A controller that only listens

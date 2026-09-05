@@ -1,10 +1,14 @@
-//! This change reads. It does not write.
+//! This crate describes writes. It does not perform them.
 //!
-//! That is a contract, not an intention, so it is checked: the crate must
-//! expose no way to stage a connection, activate one, or otherwise change a
-//! device. A controller that can accidentally reconfigure equipment which is on
-//! air is not one anybody should run, and the cheapest moment to catch such a
-//! method is the commit that adds it.
+//! The model names staging, activation and the patches that carry them, because
+//! a Node has to parse those documents and a controller has to compose them.
+//! Naming a document is not the same as sending one, and it is sending that the
+//! contract forbids: nothing here reaches out and changes a device.
+//!
+//! Two checks, because either alone has a hole. The client's public surface must
+//! offer no operation that writes; and no HTTP call anywhere may use a writing
+//! method, which catches a write hidden inside a read-shaped function. The
+//! cheapest moment to catch such a thing is the commit that adds it.
 
 // This file is test code in its entirety.
 #![allow(
@@ -32,7 +36,16 @@ fn crate_src() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("src")
 }
 
-fn source_files() -> Vec<PathBuf> {
+/// The clients, which are the only thing here that touches a network.
+///
+/// The model beneath them is deliberately not scanned for these words: it must
+/// be free to name `ActivationMode`, because that is what the document is
+/// called, and a Node cannot answer a patch it has no type for.
+fn client_src() -> PathBuf {
+    crate_src().join("client")
+}
+
+fn source_files_in(root: &Path) -> Vec<PathBuf> {
     fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
         let Ok(entries) = std::fs::read_dir(dir) else {
             return;
@@ -47,7 +60,7 @@ fn source_files() -> Vec<PathBuf> {
         }
     }
     let mut files = Vec::new();
-    walk(&crate_src(), &mut files);
+    walk(root, &mut files);
     files.sort();
     files
 }
@@ -102,9 +115,9 @@ fn words(identifier: &str) -> Vec<String> {
 }
 
 #[test]
-fn the_public_surface_offers_no_way_to_write_to_a_device() {
+fn no_client_operation_writes_to_a_device() {
     let mut problems = Vec::new();
-    for path in source_files() {
+    for path in source_files_in(&client_src()) {
         let text = std::fs::read_to_string(&path).expect("source is readable");
         for (number, line) in text.lines().enumerate() {
             let Some(identifier) = public_identifier(line) else {
@@ -124,7 +137,7 @@ fn the_public_surface_offers_no_way_to_write_to_a_device() {
     }
     assert!(
         problems.is_empty(),
-        "this crate is read-only by contract:\n{}",
+        "the clients are read-only by contract:\n{}",
         problems.join("\n")
     );
 }
@@ -134,7 +147,7 @@ fn no_request_in_this_crate_uses_a_writing_method() {
     // The surface check would miss a write made from inside a
     // read-shaped function, so the calls themselves are checked too.
     let mut problems = Vec::new();
-    for path in source_files() {
+    for path in source_files_in(&crate_src()) {
         let text = std::fs::read_to_string(&path).expect("source is readable");
         for (number, line) in text.lines().enumerate() {
             for method in [".post(", ".put(", ".patch(", ".delete(", ".head("] {

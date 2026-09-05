@@ -6,7 +6,7 @@
 
 [package]
 name = "nmos"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 # The floor of edition 2024, not the toolchain this is developed on. A library
 # that demands a toolchain from this month excludes most of the people who would

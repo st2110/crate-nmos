@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::str::FromStr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -102,6 +103,51 @@ pub struct Version {
 }
 
 impl Version {
+    /// A version at a given point on the TAI timescale.
+    ///
+    /// The reading side of the protocol never calls this — versions arrive on
+    /// the wire. A Node serving its own resources cannot work without it, which
+    /// is why it is here rather than in whatever is doing the serving.
+    #[must_use]
+    pub const fn new(seconds: u64, nanoseconds: u64) -> Self {
+        Self {
+            seconds,
+            nanoseconds,
+        }
+    }
+
+    /// Now, as this machine's clock reports it.
+    ///
+    /// The clock is the system's, so this is UTC-derived rather than true TAI;
+    /// NMOS wants TAI, and a Node that needs the distinction must supply its own
+    /// timestamp through [`Version::new`]. Two resources stamped from the same
+    /// clock still compare correctly, which is what the field is for.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParseError::Version`] if the clock is set before the Unix
+    /// epoch, which no timestamp on this timescale can express.
+    pub fn now() -> Result<Self, ParseError> {
+        Self::from_system_time(SystemTime::now())
+    }
+
+    /// A version from a point in time.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParseError::Version`] if the time is before the Unix epoch.
+    pub fn from_system_time(time: SystemTime) -> Result<Self, ParseError> {
+        let since = time
+            .duration_since(UNIX_EPOCH)
+            .map_err(|_| ParseError::Version {
+                reason: "a time before the Unix epoch has no version",
+            })?;
+        Ok(Self {
+            seconds: since.as_secs(),
+            nanoseconds: u64::from(since.subsec_nanos()),
+        })
+    }
+
     /// Whole seconds since the TAI epoch.
     #[must_use]
     pub fn seconds(self) -> u64 {
