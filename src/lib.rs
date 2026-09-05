@@ -16,7 +16,6 @@
 //! | feature | default | what it adds |
 //! |---|---|---|
 //! | `client` | yes | HTTP clients for the Node API and the Connection API |
-//! | `discovery` | no | finding Nodes on the network over mDNS |
 //! | `uuid` | no | resource identifiers as `Uuid`, for the generating side |
 //!
 //! A consumer that wants the types and no I/O at all takes the crate with

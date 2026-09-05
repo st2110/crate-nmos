@@ -19,7 +19,6 @@ and in which order it matters.
 | feature | default | what it adds |
 |---|---|---|
 | `client` | yes | HTTP clients for the Node API and the Connection API |
-| `discovery` | no | finding Nodes on the network over mDNS |
 | `uuid` | no | resource identifiers as `Uuid`, for the side that generates them |
 
 Consumers that want the types and nothing else take
@@ -32,6 +31,19 @@ Every NMOS implementation differs in some detail, and no amount of schema
 validation catches that. If this crate mishandles your equipment, a captured
 response is the most useful thing you can send: it becomes a fixture under
 `schemas/examples/`, and from then on the behaviour cannot regress.
+
+## Examples
+
+```sh
+cargo run --example node
+```
+
+Runs a Node: two Devices, one receiving video, audio and metadata and one
+sending them. It announces itself over mDNS and answers the IS-04 Node API, so
+any controller on the same network will find it.
+
+Serving HTTP and announcing over mDNS are not this library's job — it models the
+protocol. The example shows what the plumbing around it looks like.
 
 ## What the published crate contains
 

@@ -16,6 +16,17 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `Version::new`, `Version::now` and `Version::from_system_time`, so a Node can
   stamp the resources it serves rather than only read versions off the wire.
 
+### Added, in 0.2.0
+
+- `examples/node.rs`: a Node that announces itself over mDNS and answers the
+  IS-04 Node API, with one Device receiving video, audio and metadata and one
+  sending them.
+
+### Removed
+
+- The `discovery` feature. It pulled in `mdns-sd` and added no code, so enabling
+  it changed nothing while the README promised it found Nodes on the network.
+
 ### Changed
 
 - The private `AutoOr` used by the connection client is gone; the client now

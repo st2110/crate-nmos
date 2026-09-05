@@ -42,8 +42,6 @@ all-features = true
 default = ["client"]
 # The HTTP clients: IS-04 Node API and IS-05 Connection API.
 client = ["dep:reqwest", "dep:tokio"]
-# Finding Nodes on the network over mDNS.
-discovery = ["dep:mdns-sd"]
 # Resource identifiers as UUIDs, for the side that generates them rather than
 # reads them. See DESIGN.md, "Identifiers".
 uuid = ["dep:uuid"]
@@ -57,10 +55,13 @@ thiserror = "2.0.20"
 
 reqwest = { version = "0.13.4", default-features = false, features = ["rustls", "json", "http2", "charset"], optional = true }
 tokio = { version = "1.53.1", features = ["rt", "time", "macros"], optional = true }
-mdns-sd = { version = "0.21.1", optional = true }
 uuid = { version = "1.19.1", features = ["serde"], optional = true }
 
 [dev-dependencies]
+# Examples only. A Node has to answer HTTP and announce itself; neither is the
+# library's job, and showing how it is done is exactly what an example is for.
+axum = "0.8.9"
+mdns-sd = "0.21.1"
 # The vendored AMWA schemas are applied as validators, not as code generators.
 jsonschema = { version = "0.53.0", default-features = false }
 proptest = "1.11.0"
