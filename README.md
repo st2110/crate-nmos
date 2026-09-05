@@ -23,7 +23,7 @@ and Query APIs, and SDP. `DESIGN.md` says why, and in which order it matters.
 | `uuid` | no | resource identifiers as `Uuid`, for the side that generates them |
 
 Consumers that want the types and nothing else take
-`nmos = { version = "0.2", default-features = false }`, which pulls in `serde`
+`nmos = { version = "1", default-features = false }`, which pulls in `serde`
 and `thiserror` and no I/O at all.
 
 ## Contributing device responses
