@@ -3,9 +3,8 @@
 These files are copied byte-for-byte from the AMWA specification repositories.
 They are the contract this project is checked against: the test suite validates
 every resource the controller parses, and everything it serializes, against
-them. See `docs/adr/0001-nmos-types-by-hand-schemas-as-validators.md` for why
-they are validators rather than a source of generated types, and
-`docs/adr/0002-...` for what is not vendored.
+them. See `DESIGN.md`, "How correctness is held", for why they are validators
+rather than a source of generated types.
 
 Nothing here is edited. A change to the contract is a re-vendor at a new tag,
 recorded by updating this file.
@@ -20,9 +19,9 @@ recorded by updating this file.
 | Vendored on | 2026-09-04 |
 
 - `is-04/v1.3/` — the complete contents of `APIs/schemas/`.
-- `examples/is-04/` — the `examples/nodeapi-*.json` documents. Only the Node API
-  is consumed; the Registration and Query API examples are deliberately absent,
-  because this project speaks peer-to-peer and has no registry client.
+- `examples/is-04/` — the `examples/nodeapi-*.json` documents. The Registration
+  and Query API examples are absent because there is no client for those APIs
+  yet; they come with registered mode. See `DESIGN.md`, "What is missing".
 
 ## AMWA IS-05 — Device Connection Management
 
@@ -35,8 +34,8 @@ recorded by updating this file.
 
 - `is-05/v1.1/` — the complete contents of `APIs/schemas/`.
 - `examples/is-05/` — the `active` responses for Senders and Receivers, and the
-  `single` root. The `stage` and `bulk` examples are absent because this project
-  never writes to a device.
+  `single` root. The `stage` and `bulk` examples are absent because nothing here
+  writes to a device yet; they come with the `write` feature.
 
 ## Licence
 
