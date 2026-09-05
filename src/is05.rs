@@ -1,10 +1,17 @@
-//! The IS-05 connection documents: `staged`, `active`, and the patches that
-//! move one into the other.
+//! AMWA IS-05, Device Connection Management: `staged`, `active`, and the patches
+//! that move one into the other.
+//!
+//! <https://specs.amwa.tv/is-05/>
 //!
 //! Both ends of the protocol read these. A controller composes a patch; a Node
 //! parses it, decides whether it can be honoured, and answers with the resource
 //! it now holds. Neither side owns the shapes, which is why they live here and
 //! not in either application.
+//!
+//! Unlike the IS-04 resources in [`crate::is04`], these are not re-exported at
+//! the crate root: they describe one API's request and response bodies rather
+//! than the things a Node has, and only a consumer doing connection management
+//! ever names them.
 
 use std::collections::BTreeMap;
 use std::net::IpAddr;

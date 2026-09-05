@@ -11,6 +11,18 @@
 //! published AMWA JSON Schemas by the test suite in both directions: what
 //! parses must serialise back into something the schema accepts.
 //!
+//! # Where things come from
+//!
+//! The resources — [`Node`], [`Device`], [`Sender`], [`Receiver`], [`Source`],
+//! [`Flow`] and what they are made of — are here at the root, because they are
+//! the vocabulary and nobody wants to write a specification number to name a
+//! Sender. [`is04`] lists them anyway, so that "which of these is IS-04" has an
+//! answer you can read.
+//!
+//! [`is05`] holds the connection documents — `staged`, `active`, constraints
+//! and the patches between them. Those are one API's request and response
+//! bodies rather than things a Node has, so they stay in their module.
+//!
 //! # Features
 //!
 //! | feature | default | what it adds |
@@ -38,6 +50,7 @@ mod connection;
 mod device;
 mod error;
 mod flow;
+pub mod is04;
 pub mod is05;
 mod media;
 mod node;
