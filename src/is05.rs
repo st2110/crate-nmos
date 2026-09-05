@@ -295,8 +295,11 @@ pub struct ActivationPatch {
 /// Every field is a [`Param`], so "not mentioned" stays distinguishable from
 /// "cleared" all the way through.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+// Deliberately not `#[non_exhaustive]`. The fields are AMWA's, not ours, and a
+// Node has to build one of these to answer a controller at all; a struct that
+// can only be reached through `Default` serves the reading half of this crate's
+// audience and refuses the writing half.
 #[serde(default, deny_unknown_fields)]
-#[non_exhaustive]
 pub struct ReceiverTransportParamsPatch {
     /// Source to filter on, for source-specific multicast.
     #[serde(skip_serializing_if = "Param::is_absent")]
@@ -347,8 +350,11 @@ pub struct ReceiverTransportParamsPatch {
 
 /// A patch against one leg of a Sender's RTP transport parameters.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+// Deliberately not `#[non_exhaustive]`. The fields are AMWA's, not ours, and a
+// Node has to build one of these to answer a controller at all; a struct that
+// can only be reached through `Default` serves the reading half of this crate's
+// audience and refuses the writing half.
 #[serde(default, deny_unknown_fields)]
-#[non_exhaustive]
 pub struct SenderTransportParamsPatch {
     /// Which of the Node's interfaces transmits.
     #[serde(skip_serializing_if = "Param::is_absent")]

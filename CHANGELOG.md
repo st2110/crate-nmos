@@ -18,9 +18,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added, in 0.2.0
 
-- `examples/node.rs`: a Node that announces itself over mDNS and answers the
-  IS-04 Node API, with one Device receiving video, audio and metadata and one
-  sending them.
+- `examples/node.rs`: a Node that announces itself over mDNS, answers the IS-04
+  Node API with Sources and Flows behind its Senders, serves the IS-05
+  Connection API, and applies the patches a controller sends it. It holds one
+  state and renders both APIs from it.
 
 ### Removed
 
