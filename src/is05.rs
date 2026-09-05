@@ -243,9 +243,16 @@ impl Constraint {
 pub type LegConstraints = BTreeMap<String, Constraint>;
 
 /// A patch against a Receiver's `staged` resource.
+///
+/// Generic in the transport family, because the documents do not say which one
+/// they belong to: whether a leg is RTP or MQTT is settled by the Receiver's
+/// `transport` field, which lives in IS-04. So the caller names the family — a
+/// Node knows its own, and a controller has just read it — and gets a type that
+/// refuses anything else. [`UnknownParams`] is the way out when the transport is
+/// one this crate does not model.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct ReceiverStagedPatch {
+pub struct ReceiverStagedPatch<P = ReceiverRtpParams> {
     /// The Sender being taken, or `null` to take nobody.
     #[serde(skip_serializing_if = "Param::is_absent")]
     pub sender_id: Param<ResourceId>,
@@ -260,13 +267,14 @@ pub struct ReceiverStagedPatch {
     pub transport_file: Option<TransportFile>,
     /// One entry per leg. A redundant Receiver has two.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transport_params: Option<Vec<ReceiverTransportParamsPatch>>,
+    pub transport_params: Option<Vec<P>>,
 }
 
-/// A patch against a Sender's `staged` resource.
+/// A patch against a Sender's `staged` resource. Generic in the transport
+/// family, for the reasons given on [`ReceiverStagedPatch`].
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
-pub struct SenderStagedPatch {
+pub struct SenderStagedPatch<P = SenderRtpParams> {
     /// The Receiver being fed, or `null` for none.
     #[serde(skip_serializing_if = "Param::is_absent")]
     pub receiver_id: Param<ResourceId>,
@@ -278,7 +286,7 @@ pub struct SenderStagedPatch {
     pub activation: Option<ActivationPatch>,
     /// One entry per leg.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub transport_params: Option<Vec<SenderTransportParamsPatch>>,
+    pub transport_params: Option<Vec<P>>,
 }
 
 /// The activation block of a patch.
@@ -297,6 +305,108 @@ pub struct ActivationPatch {
     pub activation_time: Option<Version>,
 }
 
+/// One leg of a transport this crate does not model.
+///
+/// Every key is kept as it arrived and handed back unchanged. A controller that
+/// meets equipment speaking MXL, or anything else added to NMOS after this was
+/// written, can still read it and give it back — refusing would make this crate
+/// the reason an operator cannot see their device.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct UnknownParams(BTreeMap<String, Value>);
+
+impl UnknownParams {
+    /// One parameter, as it arrived.
+    #[must_use]
+    pub fn get(&self, key: &str) -> Option<&Value> {
+        self.0.get(key)
+    }
+
+    /// Whether the leg says anything at all.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Every parameter, in name order.
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &Value)> {
+        self.0.iter()
+    }
+}
+
+/// One leg of a Receiver reached over a websocket.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReceiverWebsocketParams {
+    /// Where to connect.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_uri: Param<String>,
+    /// How to authorize, or `false` for not at all. The schema allows a string
+    /// or a boolean, so this holds either rather than half of what is legal.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_authorization: Param<Value>,
+}
+
+/// One leg of a Sender reached over a websocket.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct SenderWebsocketParams {
+    /// Where to connect.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_uri: Param<String>,
+    /// How to authorize, or `false` for not at all.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_authorization: Param<Value>,
+}
+
+/// One leg of a Receiver subscribed to an MQTT broker.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ReceiverMqttParams {
+    /// The broker's host.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub source_host: Param<String>,
+    /// The broker's port.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub source_port: Param<u16>,
+    /// Which MQTT flavour the broker speaks.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_protocol: Param<String>,
+    /// How to authorize with the broker, or `false` for not at all.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_authorization: Param<Value>,
+    /// The topic carrying the media.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_topic: Param<String>,
+    /// The topic carrying connection status.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_status_broker_topic: Param<String>,
+}
+
+/// One leg of a Sender publishing to an MQTT broker.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct SenderMqttParams {
+    /// The broker's host.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub destination_host: Param<String>,
+    /// The broker's port.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub destination_port: Param<u16>,
+    /// Which MQTT flavour the broker speaks.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_protocol: Param<String>,
+    /// How to authorize with the broker, or `false` for not at all.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_authorization: Param<Value>,
+    /// The topic carrying the media.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub broker_topic: Param<String>,
+    /// The topic carrying connection status.
+    #[serde(skip_serializing_if = "Param::is_absent")]
+    pub connection_status_broker_topic: Param<String>,
+}
+
 /// A patch against one leg of a Receiver's RTP transport parameters.
 ///
 /// Every field is a [`Param`], so "not mentioned" stays distinguishable from
@@ -307,7 +417,7 @@ pub struct ActivationPatch {
 // can only be reached through `Default` serves the reading half of this crate's
 // audience and refuses the writing half.
 #[serde(default, deny_unknown_fields)]
-pub struct ReceiverTransportParamsPatch {
+pub struct ReceiverRtpParams {
     /// Source to filter on, for source-specific multicast.
     #[serde(skip_serializing_if = "Param::is_absent")]
     pub source_ip: Param<IpAddr>,
@@ -362,7 +472,7 @@ pub struct ReceiverTransportParamsPatch {
 // can only be reached through `Default` serves the reading half of this crate's
 // audience and refuses the writing half.
 #[serde(default, deny_unknown_fields)]
-pub struct SenderTransportParamsPatch {
+pub struct SenderRtpParams {
     /// Which of the Node's interfaces transmits.
     #[serde(skip_serializing_if = "Param::is_absent")]
     pub source_ip: Param<IpAddr>,

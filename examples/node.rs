@@ -29,8 +29,8 @@ use axum::response::IntoResponse;
 use axum::{Json, Router, routing::get};
 use mdns_sd::{ServiceDaemon, ServiceInfo};
 use nmos::is05::{
-    Activation, ActivationMode, Constraint, Param, ReceiverStagedPatch,
-    ReceiverTransportParamsPatch, SenderStagedPatch, SenderTransportParamsPatch, TransportFile,
+    Activation, ActivationMode, Constraint, Param, ReceiverRtpParams, ReceiverStagedPatch,
+    SenderRtpParams, SenderStagedPatch, TransportFile,
 };
 use nmos::{
     ApiEndpoint, Component, ComponentName, Control, Device, Flow, FlowCore, InterlaceMode,
@@ -143,8 +143,8 @@ struct Endpoint {
 /// The transport parameters of one resource, which differ by direction.
 #[derive(Clone)]
 enum Legs {
-    Receiver(Vec<ReceiverTransportParamsPatch>),
-    Sender(Vec<SenderTransportParamsPatch>),
+    Receiver(Vec<ReceiverRtpParams>),
+    Sender(Vec<SenderRtpParams>),
 }
 
 impl Endpoint {
@@ -154,7 +154,7 @@ impl Endpoint {
             peer: None,
             activation: Activation::default(),
             transport_file: Some(TransportFile::sdp(None)),
-            params: Legs::Receiver(vec![ReceiverTransportParamsPatch {
+            params: Legs::Receiver(vec![ReceiverRtpParams {
                 interface_ip: Param::Set(INTERFACE_IP.into()),
                 // Nothing joined yet. `Null` rather than absent: the parameter
                 // exists and has no value, which is not the same as unmentioned.
@@ -162,7 +162,7 @@ impl Endpoint {
                 source_ip: Param::Null,
                 destination_port: Param::Auto,
                 rtp_enabled: Param::Set(true),
-                ..ReceiverTransportParamsPatch::default()
+                ..ReceiverRtpParams::default()
             }]),
         }
     }
@@ -173,12 +173,12 @@ impl Endpoint {
             peer: None,
             activation: Activation::default(),
             transport_file: None,
-            params: Legs::Sender(vec![SenderTransportParamsPatch {
+            params: Legs::Sender(vec![SenderRtpParams {
                 source_ip: Param::Set(INTERFACE_IP.into()),
                 destination_ip: Param::Null,
                 destination_port: Param::Auto,
                 rtp_enabled: Param::Set(true),
-                ..SenderTransportParamsPatch::default()
+                ..SenderRtpParams::default()
             }]),
         }
     }
@@ -232,10 +232,7 @@ fn apply<T>(current: &mut Param<T>, patch: Param<T>) {
     }
 }
 
-fn apply_receiver_leg(
-    current: &mut ReceiverTransportParamsPatch,
-    patch: ReceiverTransportParamsPatch,
-) {
+fn apply_receiver_leg(current: &mut ReceiverRtpParams, patch: ReceiverRtpParams) {
     apply(&mut current.multicast_ip, patch.multicast_ip);
     apply(&mut current.source_ip, patch.source_ip);
     apply(&mut current.destination_port, patch.destination_port);
@@ -246,7 +243,7 @@ fn apply_receiver_leg(
     // say so too: one permitted value, and it is ours.
 }
 
-fn apply_sender_leg(current: &mut SenderTransportParamsPatch, patch: SenderTransportParamsPatch) {
+fn apply_sender_leg(current: &mut SenderRtpParams, patch: SenderRtpParams) {
     apply(&mut current.destination_ip, patch.destination_ip);
     apply(&mut current.destination_port, patch.destination_port);
     apply(&mut current.rtp_enabled, patch.rtp_enabled);

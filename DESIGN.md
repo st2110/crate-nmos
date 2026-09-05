@@ -64,6 +64,36 @@ value. The writing side needs four, because in a PATCH document
 Two states cannot express a PATCH. `Param<T>` has four, and the reading side
 simply never constructs the two it does not need.
 
+### The transport family is named by the caller
+
+IS-05 transport parameters come in families — RTP, websocket, MQTT, and whatever
+a BCP adds next — and **the documents carry no discriminator**. Nothing in a
+`transport_params` object says which family it belongs to. The answer is the
+Sender's or Receiver's `transport` field, which lives in IS-04, a different API.
+
+So the family cannot be deduced while parsing, and an untagged enum would be
+guesswork dressed as a type. Instead the patch types are generic in it:
+
+```rust
+ReceiverStagedPatch<P = ReceiverRtpParams>
+```
+
+The caller names the family, which it always knows — a Node knows its own
+transport, and a controller has just read it off the resource. In exchange it
+gets a type that refuses anything belonging to another family, which is how a
+Node answers 400 to a controller sending nonsense. RTP is the default because
+ST 2110 is what this was written for, not because it is privileged.
+
+Reading stays lenient and writing stays strict, deliberately. A controller
+meeting equipment it does not model must still be able to show it, so the client
+ignores parameters it has no field for. A Node accepting a patch must not
+silently drop half of it, so the patch types deny unknown fields.
+
+`UnknownParams` is the way out of the dilemma: it keeps every key as it arrived
+and hands it back unchanged, so a transport this crate has never heard of can
+still be read, displayed and returned. Refusing would make this crate the reason
+an operator cannot see their device.
+
 ### Bare names
 
 `Node`, `Device`, `Receiver` — not `NodeResource`. The crate is the namespace.

@@ -15,6 +15,11 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   the protocol need these — a controller composes a patch, a Node parses one.
 - `Version::new`, `Version::now` and `Version::from_system_time`, so a Node can
   stamp the resources it serves rather than only read versions off the wire.
+- Transport parameters for every family the vendored schemas describe:
+  `ReceiverRtpParams` and `SenderRtpParams` alongside the websocket and MQTT
+  ones, plus `UnknownParams` for a transport this crate does not model. The
+  staged patches are generic in the family, because the documents do not say
+  which one they belong to — see `DESIGN.md`.
 
 ### Added, in 0.2.0
 

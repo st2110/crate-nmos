@@ -18,8 +18,8 @@ use std::net::{IpAddr, Ipv4Addr};
 
 use nmos::Version;
 use nmos::is05::{
-    Activation, ActivationMode, Constraint, Param, ReceiverStagedPatch,
-    ReceiverTransportParamsPatch, SenderStagedPatch, TRANSPORT_FILE_TYPE, TransportFile,
+    Activation, ActivationMode, Constraint, Param, ReceiverRtpParams, ReceiverStagedPatch,
+    SenderStagedPatch, TRANSPORT_FILE_TYPE, TransportFile,
 };
 use serde_json::json;
 use support::{Spec, assert_valid};
@@ -28,7 +28,7 @@ use support::{Spec, assert_valid};
 fn a_parameter_has_four_states_because_a_patch_needs_four() {
     // Absent means "leave it", null means "clear it", "auto" means "you decide",
     // and a value means "use this". Two states cannot express a PATCH.
-    let patch: ReceiverTransportParamsPatch =
+    let patch: ReceiverRtpParams =
         serde_json::from_value(json!({"multicast_ip": null, "destination_port": "auto"})).unwrap();
 
     assert_eq!(patch.multicast_ip, Param::Null);
@@ -43,7 +43,7 @@ fn a_parameter_has_four_states_because_a_patch_needs_four() {
 
 #[test]
 fn a_set_parameter_carries_its_value() {
-    let patch: ReceiverTransportParamsPatch = serde_json::from_value(
+    let patch: ReceiverRtpParams = serde_json::from_value(
         json!({"multicast_ip": "239.1.1.1", "destination_port": 5004, "rtp_enabled": true}),
     )
     .unwrap();
@@ -92,7 +92,7 @@ fn auto_serialises_back_as_the_string_the_schema_names() {
 fn an_unknown_parameter_is_refused_rather_than_swallowed() {
     // A silently ignored parameter is a controller showing a connection that
     // does not exist. The contract is AMWA's and does not grow on the fly.
-    let refused: Result<ReceiverTransportParamsPatch, _> =
+    let refused: Result<ReceiverRtpParams, _> =
         serde_json::from_value(json!({"multicast_ip": "239.1.1.1", "invented": 1}));
     assert!(refused.is_err(), "unknown fields must be rejected");
 }
