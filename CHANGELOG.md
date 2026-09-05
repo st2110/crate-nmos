@@ -5,6 +5,17 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.0]
+
+### Added
+
+- The `uuid` feature, which until now was declared and empty: it named itself
+  "resource identifiers as `Uuid`" and added no code. `ResourceId` gains
+  `new_v5` and `new_v4`, `TryFrom<Uuid>` and `as_uuid`. `new_v5` is the one a
+  Node wants — identifiers derived from names survive a restart, so a
+  controller's connections do — and it cannot fail, which is the point of
+  having it rather than a conversion.
+
 ## [1.0.0]
 
 The connection half of the protocol, and the examples that prove both halves

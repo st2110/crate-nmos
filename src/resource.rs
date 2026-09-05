@@ -29,6 +29,83 @@ impl ResourceId {
     }
 }
 
+#[cfg(feature = "uuid")]
+impl ResourceId {
+    /// A random identifier, as UUID version 4.
+    ///
+    /// For a Node with nothing stable to derive from. Such a Node hands out new
+    /// identifiers on every restart, and a controller sees the equipment it had
+    /// as gone — which is why [`ResourceId::new_v5`] is usually the one wanted.
+    #[must_use]
+    pub fn new_v4() -> Self {
+        Self::from_uuid_unchecked(uuid::Uuid::new_v4())
+    }
+
+    /// An identifier derived from a namespace and a name, as UUID version 5.
+    ///
+    /// This is how a Node keeps its identifiers across a restart: the same name
+    /// gives the same identifier, so a controller's connections survive. Version
+    /// 5 always lands inside what IS-04 accepts, so unlike
+    /// [`TryFrom<Uuid>`](ResourceId::try_from) this cannot fail.
+    #[must_use]
+    pub fn new_v5(namespace: &uuid::Uuid, name: &[u8]) -> Self {
+        Self::from_uuid_unchecked(uuid::Uuid::new_v5(namespace, name))
+    }
+
+    /// The identifier as sixteen bytes.
+    ///
+    /// Infallible: nothing becomes a `ResourceId` without passing the layout
+    /// check in [`FromStr`], so an identifier read off the wire is as much a
+    /// UUID as one this crate built.
+    #[must_use]
+    pub fn as_uuid(&self) -> uuid::Uuid {
+        let mut bytes = [0_u8; 16];
+        let mut digits = self.0.bytes().filter(|byte| *byte != b'-');
+        for byte in &mut bytes {
+            // The digits are there and are hexadecimal, or this would not be a
+            // `ResourceId`. Zero stands in for an impossibility rather than
+            // hiding one: this crate does not abort on equipment's behalf.
+            let high = digits.next().map_or(0, hex_value);
+            let low = digits.next().map_or(0, hex_value);
+            *byte = (high << 4) | low;
+        }
+        uuid::Uuid::from_bytes(bytes)
+    }
+
+    /// The hyphenated lower-case form, which is what IS-04 asks for.
+    ///
+    /// Private, and used only where the version is known to be one the
+    /// specification admits — the two constructors above.
+    fn from_uuid_unchecked(uuid: uuid::Uuid) -> Self {
+        let mut text = [0_u8; uuid::fmt::Hyphenated::LENGTH];
+        Self(uuid.hyphenated().encode_lower(&mut text).into())
+    }
+}
+
+/// The value of one hexadecimal digit.
+#[cfg(feature = "uuid")]
+fn hex_value(digit: u8) -> u8 {
+    match digit {
+        b'0'..=b'9' => digit - b'0',
+        b'a'..=b'f' => digit - b'a' + 10,
+        _ => 0,
+    }
+}
+
+/// Any UUID a Node might hold, checked against what IS-04 accepts.
+///
+/// The nil and max UUIDs carry no version and are refused; everything the
+/// standard constructors produce passes.
+#[cfg(feature = "uuid")]
+impl TryFrom<uuid::Uuid> for ResourceId {
+    type Error = ParseError;
+
+    fn try_from(uuid: uuid::Uuid) -> Result<Self, Self::Error> {
+        let mut text = [0_u8; uuid::fmt::Hyphenated::LENGTH];
+        uuid.hyphenated().encode_lower(&mut text).parse()
+    }
+}
+
 impl FromStr for ResourceId {
     type Err = ParseError;
 

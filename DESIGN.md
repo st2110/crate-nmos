@@ -39,10 +39,15 @@ and a controller that refuses to display a device because its identifier is
 malformed is worse than useless — it hides the very device an operator is
 looking for.
 
-`ResourceId` is therefore a string newtype: lenient on the way in. The `uuid`
-feature adds `From<Uuid>` and `as_uuid()`, which is what the generating side
-needs — exact on the way out. Leniency is a property of parsing, not of the
-type, and the two sides need opposite defaults.
+`ResourceId` is therefore a string newtype, holding the identifier as it
+arrived. The `uuid` feature adds what the generating side needs: `new_v5` for an
+identifier derived from a name — the one a Node uses, because those have to
+survive a restart — `new_v4` for one that is not, `TryFrom<Uuid>` for a UUID
+that came from somewhere else, and `as_uuid()` for the way back out. Only the
+`TryFrom` can fail, and only on the two UUIDs that carry no version.
+
+The reading side compiles none of it. Parsing a string does not need a UUID
+library, and a controller has no identifiers of its own to hand out.
 
 ### Versions can be read and stamped
 
