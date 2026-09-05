@@ -56,6 +56,18 @@ APIs cannot disagree about whether something is connected.
 Serving HTTP and announcing over mDNS are not this library's job — it models the
 protocol and has no opinion about who holds the state.
 
+```sh
+cargo run --example nmosctl -- list
+```
+
+The other side: browses for Nodes, agrees an API version with each, reads its
+resource tree and reports what it found — including which Nodes could not be
+read, because an operator asking what is on the network needs the whole answer.
+
+A full controller ([jackfield](https://github.com/st2110/jackfield)) keeps the
+inventory, follows changes and draws a screen. `nmosctl` is the shape of the
+client underneath that.
+
 ## What the published crate contains
 
 The library, and the suite that checks it. The vendored AMWA schemas ship too,

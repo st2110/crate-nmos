@@ -22,6 +22,8 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   Node API with Sources and Flows behind its Senders, serves the IS-05
   Connection API, and applies the patches a controller sends it. It holds one
   state and renders both APIs from it.
+- `examples/nmosctl.rs`: the client side — `nmosctl list` browses for Nodes,
+  negotiates a version with each and reads its resource tree.
 
 ### Removed
 
