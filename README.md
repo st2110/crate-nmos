@@ -35,9 +35,12 @@ response is the most useful thing you can send: it becomes a fixture under
 
 ## What the published crate contains
 
-The library, and nothing else. The vendored AMWA schemas are 444K of test
-fixtures that no consumer exercises at runtime, and the test suite cannot run
-without them, so both stay in the repository. To run the suite, clone it.
+The library, and the suite that checks it. The vendored AMWA schemas ship too,
+because the tests are worthless without them — so `cargo test` works on a
+downloaded or vendored copy, and the claim that these types round-trip through
+the published schemas is one you can verify rather than take on trust.
+
+Only development scaffolding is left out.
 
 ## License
 

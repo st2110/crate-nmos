@@ -44,5 +44,5 @@ Both repositories are licensed under the Apache License 2.0, reproduced in
 is the licence of this crate as well, so there is nothing to reconcile — but the
 copyright here is AMWA's rather than ours, and the `NOTICE` is theirs to carry.
 
-This directory is excluded from the published package for size, not for
-licensing: 444K of fixtures that no consumer exercises at runtime.
+These files ship inside the published crate along with the tests that apply
+them, so the `NOTICE` above travels with every copy, as Apache-2.0 requires.

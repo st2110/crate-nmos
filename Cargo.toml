@@ -19,18 +19,11 @@ readme = "README.md"
 keywords = ["nmos", "st2110", "amwa", "broadcast", "smpte"]
 categories = ["network-programming", "multimedia"]
 
-# What ships is the library, its README and its design notes. Everything else is
-# how the library is developed, and two of the exclusions are not merely tidiness:
-#
-#   schemas/ is 444K of AMWA JSON Schema. It is Apache-2.0, as this crate is,
-#   so there is nothing to reconcile — but a consumer still needs none of it. It
-#   is applied by the test suite, in the repository, where it stays.
-#
-#   tests/ leans on those schemas for its fixtures, so a published copy could not
-#   run. A test suite that cannot run is worse than one that is not there.
+# Development scaffolding does not ship; the test suite does. This crate claims
+# its types are held to the AMWA schemas in both directions, and shipping the
+# suite that checks it turns that claim into something a reader can run. It
+# costs 38K compressed.
 exclude = [
-    "/schemas/",
-    "/tests/",
     "/Makefile",
     "/AGENTS.md",
     "/CLAUDE.md",
